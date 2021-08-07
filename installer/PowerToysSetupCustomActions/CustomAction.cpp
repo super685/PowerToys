@@ -2,6 +2,7 @@
 
 #include <ProjectTelemetry.h>
 
+#include "../../src/common/utils/MsiUtils.h"
 #include "../../src/common/updating/installer.h"
 #include "../../src/common/version/version.h"
 
@@ -583,7 +584,7 @@ UINT __stdcall DetectPrevInstallPathCA(MSIHANDLE hInstall)
 
     try
     {
-        if (auto install_path = updating::get_msi_package_installed_path())
+        if (auto install_path = GetMsiPackageInstalledPath())
         {
             MsiSetPropertyW(hInstall, L"INSTALLFOLDER", install_path->data());
         }
@@ -773,10 +774,14 @@ UINT __stdcall TerminateProcessesCA(MSIHANDLE hInstall)
     }
     processes.resize(bytes / sizeof(processes[0]));
 
-    std::array<std::wstring_view, 4> processesToTerminate = {
+    std::array<std::wstring_view, 8> processesToTerminate = {
         L"PowerLauncher.exe",
         L"PowerToys.Settings.exe",
+        L"PowerToys.Awake.exe",
+        L"PowerToys.FancyZones.exe",
         L"Microsoft.PowerToys.Settings.UI.exe",
+        L"FancyZonesEditor.exe",
+        L"ColorPickerUI.exe",
         L"PowerToys.exe"
     };
 

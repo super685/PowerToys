@@ -32,6 +32,9 @@
     </ClInclude>
     <ClInclude Include="..\..\modules\videoconference\VideoConferenceShared\VideoCaptureDeviceList.h">
       <Filter>Header Files</Filter>
+    </ClInclude>    
+    <ClInclude Include="shared_constants.h">   
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

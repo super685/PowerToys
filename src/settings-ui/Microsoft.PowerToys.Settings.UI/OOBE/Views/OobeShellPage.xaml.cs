@@ -28,13 +28,6 @@ namespace Microsoft.PowerToys.Settings.UI.OOBE.Views
             ColorPickerSharedEventCallback = implementation;
         }
 
-        public static Func<string> ShortcutGuideSharedEventCallback { get; set; }
-
-        public static void SetShortcutGuideSharedEventCallback(Func<string> implementation)
-        {
-            ShortcutGuideSharedEventCallback = implementation;
-        }
-
         public static Action<Type> OpenMainWindowCallback { get; set; }
 
         public static void SetOpenMainWindowCallback(Action<Type> implementation)
@@ -75,6 +68,18 @@ namespace Microsoft.PowerToys.Settings.UI.OOBE.Views
                 PreviewImageSource = "ms-appx:///Assets/Modules/OOBE/OOBEPTHero.png",
                 DescriptionLink = "https://aka.ms/PowerToysOverview",
                 Link = "https://github.com/microsoft/PowerToys/releases/",
+            });
+            Modules.Insert((int)PowerToysModulesEnum.Awake, new OobePowerToysModule()
+            {
+                ModuleName = loader.GetString("Oobe_Awake"),
+                Tag = "Awake",
+                IsNew = false,
+                Icon = "\uEC32",
+                Image = "ms-appx:///Assets/Modules/Awake.png",
+                FluentIcon = "ms-appx:///Assets/FluentIcons/FluentIconsAwake.png",
+                PreviewImageSource = "ms-appx:///Assets/Modules/OOBE/Awake.png",
+                Description = loader.GetString("Oobe_Awake_Description"),
+                Link = "https://aka.ms/PowerToysOverview_Awake",
             });
             Modules.Insert((int)PowerToysModulesEnum.ColorPicker, new OobePowerToysModule()
             {
@@ -136,18 +141,6 @@ namespace Microsoft.PowerToys.Settings.UI.OOBE.Views
                 PreviewImageSource = "ms-appx:///Assets/Modules/OOBE/KBM.gif",
                 Link = "https://aka.ms/PowerToysOverview_KeyboardManager",
             });
-            Modules.Insert((int)PowerToysModulesEnum.Run, new OobePowerToysModule()
-            {
-                ModuleName = loader.GetString("Oobe_Run"),
-                Tag = "Run",
-                IsNew = false,
-                Icon = "\uE773",
-                Image = "ms-appx:///Assets/Modules/PowerLauncher.png",
-                FluentIcon = "ms-appx:///Assets/FluentIcons/FluentIconsPowerToysRun.png",
-                PreviewImageSource = "ms-appx:///Assets/Modules/OOBE/Run.gif",
-                Description = loader.GetString("Oobe_PowerRun_Description"),
-                Link = "https://aka.ms/PowerToysOverview_PowerToysRun",
-            });
             Modules.Insert((int)PowerToysModulesEnum.PowerRename, new OobePowerToysModule()
             {
                 ModuleName = loader.GetString("Oobe_PowerRename"),
@@ -159,6 +152,18 @@ namespace Microsoft.PowerToys.Settings.UI.OOBE.Views
                 Description = loader.GetString("Oobe_PowerRename_Description"),
                 PreviewImageSource = "ms-appx:///Assets/Modules/OOBE/PowerRename.gif",
                 Link = "https://aka.ms/PowerToysOverview_PowerRename",
+            });
+            Modules.Insert((int)PowerToysModulesEnum.Run, new OobePowerToysModule()
+            {
+                ModuleName = loader.GetString("Oobe_Run"),
+                Tag = "Run",
+                IsNew = false,
+                Icon = "\uE773",
+                Image = "ms-appx:///Assets/Modules/PowerLauncher.png",
+                FluentIcon = "ms-appx:///Assets/FluentIcons/FluentIconsPowerToysRun.png",
+                PreviewImageSource = "ms-appx:///Assets/Modules/OOBE/Run.gif",
+                Description = loader.GetString("Oobe_PowerRun_Description"),
+                Link = "https://aka.ms/PowerToysOverview_PowerToysRun",
             });
             Modules.Insert((int)PowerToysModulesEnum.ShortcutGuide, new OobePowerToysModule()
             {
@@ -210,6 +215,7 @@ namespace Microsoft.PowerToys.Settings.UI.OOBE.Views
             switch (selectedItem.Tag)
             {
                 case "Overview": NavigationFrame.Navigate(typeof(OobeOverview)); break;
+                case "Awake": NavigationFrame.Navigate(typeof(OobeAwake)); break;
                 case "ColorPicker": NavigationFrame.Navigate(typeof(OobeColorPicker)); break;
                 case "FancyZones": NavigationFrame.Navigate(typeof(OobeFancyZones)); break;
                 case "Run": NavigationFrame.Navigate(typeof(OobeRun)); break;

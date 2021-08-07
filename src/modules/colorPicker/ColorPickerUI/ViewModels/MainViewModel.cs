@@ -118,10 +118,7 @@ namespace ColorPicker.ViewModels
         {
             ColorBrush = new SolidColorBrush(Color.FromArgb(color.A, color.R, color.G, color.B));
             ColorText = ColorRepresentationHelper.GetStringRepresentation(color, _userSettings.CopiedColorRepresentation.Value);
-            if (_userSettings.ShowColorName.Value)
-            {
-                ColorName = ColorNameHelper.GetColorName(color);
-            }
+            ColorName = ColorNameHelper.GetColorName(color);
         }
 
         /// <summary>
@@ -133,7 +130,17 @@ namespace ColorPicker.ViewModels
         {
             ClipboardHelper.CopyToClipboard(ColorText);
 
-            _userSettings.ColorHistory.Insert(0, GetColorString());
+            var color = GetColorString();
+
+            var oldIndex = _userSettings.ColorHistory.IndexOf(color);
+            if (oldIndex != -1)
+            {
+                _userSettings.ColorHistory.Move(oldIndex, 0);
+            }
+            else
+            {
+                _userSettings.ColorHistory.Insert(0, color);
+            }
 
             if (_userSettings.ColorHistory.Count > _userSettings.ColorHistoryLimit.Value)
             {

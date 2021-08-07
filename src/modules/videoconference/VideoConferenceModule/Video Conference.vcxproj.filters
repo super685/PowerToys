@@ -5,12 +5,14 @@
     <ClCompile Include="Toolbar.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="VideoConferenceModule.cpp" />
+    <ClCompile Include="trace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="Toolbar.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="VideoConferenceModule.h" />
+    <ClInclude Include="trace.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="black.bmp" />

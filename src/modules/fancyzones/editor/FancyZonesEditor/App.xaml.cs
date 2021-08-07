@@ -21,7 +21,7 @@ namespace FancyZonesEditor
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App : Application, IDisposable
     {
         // Non-localizable strings
         private const string CrashReportLogFile = "FZEditorCrashLog.txt";
@@ -57,6 +57,8 @@ namespace FancyZonesEditor
 
         private ThemeManager _themeManager;
 
+        private EventWaitHandle _eventHandle;
+
         public static bool DebugMode
         {
             get
@@ -66,6 +68,7 @@ namespace FancyZonesEditor
         }
 
         private static bool _debugMode;
+        private bool _isDisposed;
 
         [Conditional("DEBUG")]
         private void DebugModeCheck()
@@ -79,6 +82,15 @@ namespace FancyZonesEditor
             FancyZonesEditorIO = new FancyZonesEditorIO();
             Overlay = new Overlay();
             MainWindowSettings = new MainWindowSettingsModel();
+
+            new Thread(() =>
+            {
+                _eventHandle = new EventWaitHandle(false, EventResetMode.AutoReset, interop.Constants.FZEExitEvent());
+                if (_eventHandle.WaitOne())
+                {
+                    Environment.Exit(0);
+                }
+            }).Start();
         }
 
         private void OnStartup(object sender, StartupEventArgs e)
@@ -144,6 +156,14 @@ namespace FancyZonesEditor
             Overlay.Show();
         }
 
+        private void OnExit(object sender, ExitEventArgs e)
+        {
+            if (_eventHandle != null)
+            {
+                _eventHandle.Set();
+            }
+        }
+
         public void App_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == System.Windows.Input.Key.LeftShift || e.Key == System.Windows.Input.Key.RightShift)
@@ -174,9 +194,12 @@ namespace FancyZonesEditor
         public static void ShowExceptionReportMessageBox(string reportData)
         {
             var fileStream = File.OpenWrite(ErrorReportLogFile);
-            var sw = new StreamWriter(fileStream);
-            sw.Write(reportData);
-            sw.Flush();
+            using (var sw = new StreamWriter(fileStream))
+            {
+                sw.Write(reportData);
+                sw.Flush();
+            }
+
             fileStream.Close();
 
             ShowReportMessageBox(fileStream.Name);
@@ -185,8 +208,11 @@ namespace FancyZonesEditor
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
         {
             var fileStream = File.OpenWrite(CrashReportLogFile);
-            var sw = new StreamWriter(fileStream);
-            sw.Write(FormatException((Exception)args.ExceptionObject));
+            using (var sw = new StreamWriter(fileStream))
+            {
+                sw.Write(FormatException((Exception)args.ExceptionObject));
+            }
+
             fileStream.Close();
 
             ShowReportMessageBox(fileStream.Name);
@@ -283,6 +309,28 @@ namespace FancyZonesEditor
             }
 
             return sb.ToString();
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_isDisposed)
+            {
+                if (disposing)
+                {
+                    _themeManager?.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _isDisposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

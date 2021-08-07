@@ -79,6 +79,42 @@ namespace ColorPicker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Color code.
+        /// </summary>
+        public static string Color_Code {
+            get {
+                return ResourceManager.GetString("Color_Code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color history.
+        /// </summary>
+        public static string Color_History {
+            get {
+                return ResourceManager.GetString("Color_History", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color palette.
+        /// </summary>
+        public static string Color_Palette {
+            get {
+                return ResourceManager.GetString("Color_Palette", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color picker control.
+        /// </summary>
+        public static string Color_Picker_Control {
+            get {
+                return ResourceManager.GetString("Color_Picker_Control", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copied to clipboard.
         /// </summary>
         public static string Copied_to_clipboard {
@@ -102,6 +138,24 @@ namespace ColorPicker.Properties {
         public static string cp_editor {
             get {
                 return ResourceManager.GetString("cp_editor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color dark 1.
+        /// </summary>
+        public static string Darker_color {
+            get {
+                return ResourceManager.GetString("Darker_color", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color dark 2.
+        /// </summary>
+        public static string Darkest_color {
+            get {
+                return ResourceManager.GetString("Darkest_color", resourceCulture);
             }
         }
         
@@ -133,20 +187,29 @@ namespace ColorPicker.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Color light 1.
+        /// </summary>
+        public static string Lighter_color {
+            get {
+                return ResourceManager.GetString("Lighter_color", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color light 2.
+        /// </summary>
+        public static string Lightest_color {
+            get {
+                return ResourceManager.GetString("Lightest color", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Press the Color Picker icon to capture a color from your screen..
         /// </summary>
         public static string No_colors_yet {
             get {
                 return ResourceManager.GetString("No_colors_yet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to OK.
-        /// </summary>
-        public static string OK {
-            get {
-                return ResourceManager.GetString("OK", resourceCulture);
             }
         }
         
@@ -192,6 +255,15 @@ namespace ColorPicker.Properties {
         public static string Saturation_slider {
             get {
                 return ResourceManager.GetString("Saturation_slider", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select.
+        /// </summary>
+        public static string Select {
+            get {
+                return ResourceManager.GetString("Select", resourceCulture);
             }
         }
         

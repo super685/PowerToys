@@ -70,42 +70,53 @@ namespace ColorPicker.Keyboard
             var virtualCode = e.KeyboardData.VirtualCode;
 
             // ESC pressed
-            if (virtualCode == KeyInterop.VirtualKeyFromKey(Key.Escape))
+            if (virtualCode == KeyInterop.VirtualKeyFromKey(Key.Escape)
+                && e.KeyboardState == GlobalKeyboardHook.KeyboardState.KeyDown
+                )
             {
-                _appStateHandler.EndUserSession();
-                return;
-            }
-
-            var name = Helper.GetKeyName((uint)virtualCode);
-
-            // If the last key pressed is a modifier key, then currentlyPressedKeys cannot possibly match with _activationKeys
-            // because _activationKeys contains exactly 1 non-modifier key. Hence, there's no need to check if `name` is a
-            // modifier key or to do any additional processing on it.
-            if (e.KeyboardState == GlobalKeyboardHook.KeyboardState.KeyDown || e.KeyboardState == GlobalKeyboardHook.KeyboardState.SysKeyDown)
-            {
-                // Check pressed modifier keys.
-                AddModifierKeys(currentlyPressedKeys);
-
-                currentlyPressedKeys.Add(name);
-            }
-
-            currentlyPressedKeys.Sort();
-
-            if (currentlyPressedKeys.Count == 0 && _previouslyPressedKeys.Count != 0)
-            {
-                // no keys pressed, we can enable activation shortcut again
-                _activationShortcutPressed = false;
-            }
-
-            _previouslyPressedKeys = currentlyPressedKeys;
-
-            if (ArraysAreSame(currentlyPressedKeys, _activationKeys))
-            {
-                // avoid triggering this action multiple times as this will be called nonstop while keys are pressed
-                if (!_activationShortcutPressed)
+                if (_appStateHandler.IsColorPickerVisible()
+                    || !AppStateHandler.BlockEscapeKeyClosingColorPickerEditor
+                    )
                 {
-                    _activationShortcutPressed = true;
-                    _appStateHandler.StartUserSession();
+                    e.Handled = _appStateHandler.EndUserSession();
+                    return;
+                }
+            }
+
+            if ((System.Windows.Application.Current as ColorPickerUI.App).IsRunningDetachedFromPowerToys())
+            {
+                var name = Helper.GetKeyName((uint)virtualCode);
+
+                // If the last key pressed is a modifier key, then currentlyPressedKeys cannot possibly match with _activationKeys
+                // because _activationKeys contains exactly 1 non-modifier key. Hence, there's no need to check if `name` is a
+                // modifier key or to do any additional processing on it.
+                if (e.KeyboardState == GlobalKeyboardHook.KeyboardState.KeyDown || e.KeyboardState == GlobalKeyboardHook.KeyboardState.SysKeyDown)
+                {
+                    // Check pressed modifier keys.
+                    AddModifierKeys(currentlyPressedKeys);
+
+                    currentlyPressedKeys.Add(name);
+                }
+
+                currentlyPressedKeys.Sort();
+
+                if (currentlyPressedKeys.Count == 0 && _previouslyPressedKeys.Count != 0)
+                {
+                    // no keys pressed, we can enable activation shortcut again
+                    _activationShortcutPressed = false;
+                }
+
+                _previouslyPressedKeys = currentlyPressedKeys;
+
+                if (ArraysAreSame(currentlyPressedKeys, _activationKeys))
+                {
+                    // avoid triggering this action multiple times as this will be called nonstop while keys are pressed
+                    if (!_activationShortcutPressed)
+                    {
+                        _activationShortcutPressed = true;
+
+                        _appStateHandler.StartUserSession();
+                    }
                 }
             }
         }

@@ -20,6 +20,9 @@ namespace ColorPicker.Helpers
         private bool _colorPickerShown;
         private object _colorPickerVisibilityLock = new object();
 
+        // Blocks using the escape key to close the color picker editor when the adjust color flyout is open.
+        public static bool BlockEscapeKeyClosingColorPickerEditor { get; set; }
+
         [ImportingConstructor]
         public AppStateHandler(IColorEditorViewModel colorEditorViewModel, IUserSettings userSettings)
         {
@@ -36,6 +39,7 @@ namespace ColorPicker.Helpers
 
         public void StartUserSession()
         {
+            EndUserSession(); // Ends current user session if there's an active one.
             lock (_colorPickerVisibilityLock)
             {
                 if (!_colorPickerShown && !IsColorPickerEditorVisible())
@@ -54,7 +58,7 @@ namespace ColorPicker.Helpers
             }
         }
 
-        public void EndUserSession()
+        public bool EndUserSession()
         {
             lock (_colorPickerVisibilityLock)
             {
@@ -70,7 +74,11 @@ namespace ColorPicker.Helpers
                     }
 
                     SessionEventHelper.End();
+
+                    return true;
                 }
+
+                return false;
             }
         }
 
@@ -145,7 +153,7 @@ namespace ColorPicker.Helpers
             }
         }
 
-        private bool IsColorPickerEditorVisible()
+        public bool IsColorPickerEditorVisible()
         {
             if (_colorEditorWindow != null)
             {
@@ -154,6 +162,11 @@ namespace ColorPicker.Helpers
             }
 
             return false;
+        }
+
+        public bool IsColorPickerVisible()
+        {
+            return _colorPickerShown;
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)

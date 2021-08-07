@@ -5,6 +5,8 @@
 #include <Shlobj.h>
 #include <winrt/Windows.Data.Json.h>
 #include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.System.UserProfile.h>
+#include <winrt/Windows.Globalization.h>
 
 #include "ZipTools/ZipFolder.h"
 #include <common/SettingsAPI/settings_helpers.h>
@@ -13,7 +15,10 @@
 #include <common/utils/exec.h>
 
 #include "ReportMonitorInfo.h"
-#include "ReportRegistry.h"
+#include "RegistryUtils.h"
+#include "EventViewer.h"
+#include "InstallationFolder.h"
+
 using namespace std;
 using namespace std::filesystem;
 using namespace winrt::Windows::Data::Json;
@@ -31,7 +36,7 @@ vector<wstring> filesToDelete = {
     L"PowerToys Run\\Settings\\QueryHistory.json"
 };
 
-vector<wstring> getXpathArray(wstring xpath)
+vector<wstring> GetXpathArray(wstring xpath)
 {
     vector<wstring> result;
     wstring cur = L"";
@@ -55,13 +60,13 @@ vector<wstring> getXpathArray(wstring xpath)
     return result;
 }
 
-void hideByXPath(IJsonValue& val, vector<wstring>& xpathArray, int p)
+void HideByXPath(IJsonValue& val, vector<wstring>& xpathArray, int p)
 {
     if (val.ValueType() == JsonValueType::Array)
     {
         for (auto it : val.GetArray())
         {
-            hideByXPath(it, xpathArray, p);
+            HideByXPath(it, xpathArray, p);
         }
 
         return;
@@ -94,11 +99,11 @@ void hideByXPath(IJsonValue& val, vector<wstring>& xpathArray, int p)
             return;
         }
 
-        hideByXPath(newVal, xpathArray, p + 1);
+        HideByXPath(newVal, xpathArray, p + 1);
     }
 }
 
-void hideForFile(const path& dir, const wstring& relativePath)
+void HideForFile(const path& dir, const wstring& relativePath)
 {
     path jsonPath = dir;
     jsonPath.append(relativePath);
@@ -112,14 +117,14 @@ void hideForFile(const path& dir, const wstring& relativePath)
     JsonValue jValue = json::value(jObject.value());
     for (auto xpath : escapeInfo[relativePath])
     {
-        vector<wstring> xpathArray = getXpathArray(xpath);
-        hideByXPath(jValue, xpathArray, 0);
+        vector<wstring> xpathArray = GetXpathArray(xpath);
+        HideByXPath(jValue, xpathArray, 0);
     }
 
     json::to_file(jsonPath.wstring(), jObject.value());
 }
 
-bool deleteFolder(wstring path)
+bool DeleteFolder(wstring path)
 {
     error_code err;
     remove_all(path, err);
@@ -132,24 +137,24 @@ bool deleteFolder(wstring path)
     return true;
 }
 
-void hideUserPrivateInfo(const filesystem::path& dir)
+void HideUserPrivateInfo(const filesystem::path& dir)
 {
     // Replace data in json files
     for (auto& it : escapeInfo)
     {
-        hideForFile(dir, it.first);
+        HideForFile(dir, it.first);
     }
 
-    // delete files
+    // Delete files
     for (auto it : filesToDelete)
     {
         auto path = dir;
         path = path.append(it);
-        deleteFolder(path);
+        DeleteFolder(path);
     }
 }
 
-void reportWindowsVersion(const filesystem::path& tmpDir)
+void ReportWindowsVersion(const filesystem::path& tmpDir)
 {
     auto versionReportPath = tmpDir;
     versionReportPath = versionReportPath.append("windows-version.txt");
@@ -185,7 +190,41 @@ void reportWindowsVersion(const filesystem::path& tmpDir)
     }
 }
 
-void reportDotNetInstallationInfo(const filesystem::path& tmpDir)
+void ReportWindowsSettings(const filesystem::path& tmpDir)
+{
+    std::wstring userLanguage;
+    std::wstring userLocale;
+    try
+    {
+        const auto lang = winrt::Windows::System::UserProfile::GlobalizationPreferences::Languages().GetAt(0);
+        userLanguage = winrt::Windows::Globalization::Language{lang}.DisplayName().c_str();
+        wchar_t localeName[LOCALE_NAME_MAX_LENGTH]{};
+        if (!LCIDToLocaleName(GetThreadLocale(), localeName, LOCALE_NAME_MAX_LENGTH, 0))
+        {
+            throw -1;
+        }
+        userLocale = localeName;
+    }
+    catch (...)
+    {
+        printf("Failed to get windows settings\n");
+        return;
+    }
+
+    try
+    {
+        wofstream settingsReport(tmpDir / "windows-settings.txt");
+        settingsReport << "Preferred user language: " << userLanguage << endl;
+        settingsReport << "User locale: " << userLocale << endl;
+    }
+    catch(...)
+    {
+        printf("Failed to write windows settings\n");
+    }
+
+}
+
+void ReportDotNetInstallationInfo(const filesystem::path& tmpDir)
 {
     auto dotnetInfoPath = tmpDir;
     dotnetInfoPath.append("dotnet-installation-info.txt");
@@ -207,7 +246,7 @@ void reportDotNetInstallationInfo(const filesystem::path& tmpDir)
     }
 }
 
-void reportVCMLogs(const filesystem::path& tmpDir, const filesystem::path& reportDir)
+void ReportVCMLogs(const filesystem::path& tmpDir, const filesystem::path& reportDir)
 {
     error_code ec;
     copy(tmpDir / "PowerToysVideoConference_x86.log", reportDir, ec);
@@ -240,9 +279,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t*)
     settingsRootPath = settingsRootPath + L"\\";
 
     const auto tempDir = temp_directory_path();
-    // Copy to a temp folder
-    auto reportDir = tempDir / "PowerToys\\";
-    if (!deleteFolder(reportDir))
+    auto reportDir = temp_directory_path() / "PowerToys\\";
+    if (!DeleteFolder(reportDir))
     {
         printf("Failed to delete temp folder\n");
         return 1;
@@ -251,8 +289,9 @@ int wmain(int argc, wchar_t* argv[], wchar_t*)
     try
     {
         copy(settingsRootPath, reportDir, copy_options::recursive);
+        
         // Remove updates folder contents
-        deleteFolder(reportDir / "Updates");
+        DeleteFolder(reportDir / "Updates");
     }
     catch (...)
     {
@@ -260,22 +299,33 @@ int wmain(int argc, wchar_t* argv[], wchar_t*)
         return 1;
     }
 
+    InstallationFolder::ReportStructure(reportDir);
+
     // Hide sensitive information
-    hideUserPrivateInfo(reportDir);
+    HideUserPrivateInfo(reportDir);
 
-    // Write monitors info to the report folder
-    reportMonitorInfo(reportDir);
+    // Write windows settings to the temporary folder
+    ReportWindowsSettings(reportDir);
 
-    // Write windows version info to the report folder
-    reportWindowsVersion(reportDir);
+    // Write monitors info to the temporary folder
+    ReportMonitorInfo(reportDir);
 
-    // Write dotnet installation info to the report folder
-    reportDotNetInstallationInfo(reportDir);
+    // Write windows version info to the temporary folder
+    ReportWindowsVersion(reportDir);
 
-    // Write registry to the report folder
-    reportRegistry(reportDir);
+    // Write dotnet installation info to the temporary folder
+    ReportDotNetInstallationInfo(reportDir);
 
-    reportVCMLogs(tempDir, reportDir);
+    // Write registry to the temporary folder
+    ReportRegistry(reportDir);
+
+    // Write compatibility tab info to the temporary folder
+    ReportCompatibilityTab(reportDir);
+
+    // Write event viewer logs info to the temporary folder
+    EventViewer::ReportEventViewerInfo(reportDir);
+
+    ReportVCMLogs(tempDir, reportDir);
 
     // Zip folder
     auto zipPath = path::path(saveZipPath);
@@ -286,7 +336,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t*)
 
     try
     {
-        zipFolder(zipPath, reportDir);
+        ZipFolder(zipPath, reportDir);
     }
     catch (...)
     {
@@ -294,6 +344,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t*)
         return 1;
     }
 
-    deleteFolder(reportDir);
+    DeleteFolder(reportDir);
     return 0;
 }

@@ -55,7 +55,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Mf.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -90,6 +90,7 @@
     <ClInclude Include="KeyboardHook.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="shared_constants.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\modules\videoconference\VideoConferenceShared\MicrophoneDevice.cpp">
